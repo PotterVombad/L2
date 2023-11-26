@@ -14,6 +14,10 @@ func main() {
 	if sorter == nil {
 		return
 	}
-	sorter.Run()
-
+	err = sorter.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	} 
+	fmt.Println("sorted successfully")
 }

@@ -14,6 +14,7 @@ type Sorter struct {
 	data  []string
 }
 
+//читаем строки из файла
 func readLines(filePath string) ([]string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -43,6 +44,7 @@ func makeUnique(data []string) []string {
 	return result
 }
 
+//маленькая сортировка для проверки
 func justSort(lines []string) []string {
 	var low []string
 	mapLowerLinesToLines := map[string]string{}
@@ -61,6 +63,7 @@ func justSort(lines []string) []string {
 	return result
 }
 
+//сравниваем слайсы
 func slicesEqual(slice1, slice2 []string) bool {
 	if len(slice1) != len(slice2) {
 		return false
@@ -73,10 +76,10 @@ func slicesEqual(slice1, slice2 []string) bool {
 	return true
 }
 
-func (s *Sorter) Run() ([]string, error) {
+func (s *Sorter) Run() (error) {
 
 	if s.flags.month && s.flags.numeric || s.flags.month && s.flags.numericSuffix || s.flags.numeric && s.flags.numericSuffix {
-		return nil, fmt.Errorf("select only one type of sorting")
+		return fmt.Errorf("select only one type of sorting")
 	}
 	var newData [][]string
 	result := []string{}
@@ -89,26 +92,40 @@ func (s *Sorter) Run() ([]string, error) {
 	if s.flags.month || s.flags.numeric {
 		result, err = sorting(s.flags.coloumn, newData, s.flags.numeric)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else if s.flags.numericSuffix {
 		result, err = sortSuf(s.flags.coloumn, newData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		result, err = sortColoumn(s.flags.coloumn, newData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	// делаем реверс
+	// делаем реверс если надо
 	if s.flags.reverse {
 		slices.Reverse(result)
 	}
 
-	return result, nil
+	//записываем в файл
+	f, err := os.Create(s.flags.path + "sorted")
+	if err != nil {
+		return err
+	}
+	defer func(f *os.File) {
+		err = f.Close()
+	}(f)
+	for _, line := range result {
+		_, err = fmt.Fprint(f, line)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func NewSorter() (*Sorter, error) {
