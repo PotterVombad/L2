@@ -1,56 +1,76 @@
 package pattern
 
-import (
-	"fmt"
-	"time"
-)
+//паттерн Фасад это структурный паттерн, который предоставляет простой (но урезанный) интерфейс 
+//к сложной системе объектов, библиотеке или фреймворку.
+//Кроме того, что Фасад позволяет снизить общую сложность программы, он также помогает вынести код, 
+//зависимый от внешней системы в единственное место.
 
-/*
-фасад - упростить инфтерфейс для того чтобы пользователь, разработчик которой
-работает с системой, скрытие бизнес логики, пользователю миимум функционала
-+
-изолирует клиентов от системы
--
-сам интерфейс может стать суперклассом по итогу все последующие функции будут проходитб через него
-*/
+//Использование паттерна может решить эти проблемы:
+//-Чтобы упростить использование сложной подсистемы, для набора 
+//интерфейсов в подсистеме должен быть предоставлен простой интерфейс.
+//-Зависимости от подсистемы должны быть сведены к минимуму.
 
-type Product struct {
-	Name string
-	Cost float32
+//Использование паттерна описывает следующее решение:
+//-реализует простой интерфейс с точки зрения (путем делегирования) интерфейсов в подсистеме и
+//-может выполнять дополнительные функциональные возможности до / после пересылки запроса.
+
+// Плюсы:
+// -Простота использования: Позволяет клиентскому коду использовать сложную подсистему, 
+//не беспокоясь о деталях ее внутренней реализации.
+//-Снижение зависимостей: Уменьшает зависимость клиентского кода от сложной структуры подсистемы, 
+//что делает код более гибким и легко поддерживаемым.
+//-Улучшение структуры кода: Создает четкую иерархию, что улучшает структуру кода и делает его более понятным.
+
+// Минусы:
+// -Ограничение гибкости: Фасад может не предоставлять всех возможностей подсистемы, 
+//что может ограничить гибкость клиентского кода в случае необходимости более сложных операций.
+//-Добавление слоя абстракции: Некоторые разработчики считают, что фасад добавляет дополнительный слой абстракции, 
+//что может усложнить систему для опытных разработчиков.
+
+import "fmt"
+
+// Подсистема A
+type SubsystemA struct {
 }
 
-type Shop struct {
-	Name string
-	Products []Product
+func (s *SubsystemA) OperationA1() {
+	fmt.Println("Subsystem A, Operation A1")
 }
 
-type Bank struct {
-	Name string
-	Cards []Card
+func (s *SubsystemA) OperationA2() {
+	fmt.Println("Subsystem A, Operation A2")
 }
 
-type Card struct {
-	Name string
-	Bank *Bank
-	Balance float32
+// Подсистема B
+type SubsystemB struct {
 }
 
-type User struct {
-	Name string
-	Card *Card
+func (s *SubsystemB) OperationB1() {
+	fmt.Println("Subsystem B, Operation B1")
 }
 
-func (u *User) GetBalance() float32 { 
-	return u.Card.Balance
+func (s *SubsystemB) OperationB2() {
+	fmt.Println("Subsystem B, Operation B2")
 }
 
-func(c *Card) CheckBalance() err {
-	
+// Фасад
+type Facade struct {
+	subsystemA *SubsystemA
+	subsystemB *SubsystemB
 }
 
-func (s *Shop) Sell(user User, product Product) error {
-	fmt.Println("запрос к карте")
-	time.Sleep(time.Second * 5)
+func NewFacade() *Facade {
+	return &Facade{
+		subsystemA: &SubsystemA{},
+		subsystemB: &SubsystemB{},
+	}
+}
 
-	return nil
+// Методы фасада, предоставляющие унифицированный интерфейс для клиента
+func (f *Facade) Operation() {
+	fmt.Println("Facade operation:")
+	f.subsystemA.OperationA1()
+	f.subsystemA.OperationA2()
+	f.subsystemB.OperationB1()
+	f.subsystemB.OperationB2()
 }
